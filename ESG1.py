@@ -99,53 +99,27 @@ def display_esg_score(score):
     </div>
     """, unsafe_allow_html=True)
 
-# Funzione per creare un grafico di confronto
+# Funzione per creare un grafico di confronto semplificato
 def create_comparison_chart(product1, product2, values1, values2, categories):
-    # Creiamo una tabella di confronto con barre orizzontali
-    html = f"""
-    <div style="margin: 20px 0; padding: 15px; border-radius: 10px; background-color: #f8f9fa;">
-        <div style="display: flex; justify-content: center; margin-bottom: 15px;">
-            <div style="margin-right: 20px;">
-                <span style="display: inline-block; width: 15px; height: 15px; background-color: #2E86C1; margin-right: 5px; border-radius: 3px;"></span>
-                <span style="font-weight: bold;">{product1}</span>
-            </div>
-            <div>
-                <span style="display: inline-block; width: 15px; height: 15px; background-color: #27AE60; margin-right: 5px; border-radius: 3px;"></span>
-                <span style="font-weight: bold;">{product2}</span>
-            </div>
-        </div>
-    """
+    # Utilizziamo componenti nativi di Streamlit per il confronto
+    st.write(f"### Confronto tra {product1} e {product2}")
     
-    # Aggiungiamo le barre di confronto per ogni categoria
     for i, category in enumerate(categories):
         val1 = int(values1[i] * 100)
         val2 = int(values2[i] * 100)
         
-        html += f"""
-        <div style="margin-bottom: 20px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">{category}</div>
-            
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <div style="width: 100px; text-align: right; padding-right: 10px;">{product1}</div>
-                <div style="flex-grow: 1; background-color: #f0f0f0; border-radius: 5px; height: 20px; position: relative;">
-                    <div style="position: absolute; background-color: #2E86C1; width: {val1}%; height: 100%; border-radius: 5px;"></div>
-                </div>
-                <div style="width: 50px; text-align: right; padding-left: 10px;">{val1}%</div>
-            </div>
-            
-            <div style="display: flex; align-items: center;">
-                <div style="width: 100px; text-align: right; padding-right: 10px;">{product2}</div>
-                <div style="flex-grow: 1; background-color: #f0f0f0; border-radius: 5px; height: 20px; position: relative;">
-                    <div style="position: absolute; background-color: #27AE60; width: {val2}%; height: 100%; border-radius: 5px;"></div>
-                </div>
-                <div style="width: 50px; text-align: right; padding-left: 10px;">{val2}%</div>
-            </div>
-        </div>
-        """
-    
-    html += "</div>"
-    
-    return html
+        st.write(f"**{category}**")
+        
+        cols = st.columns(2)
+        with cols[0]:
+            st.write(f"{product1}: {val1}%")
+            st.progress(values1[i])
+        
+        with cols[1]:
+            st.write(f"{product2}: {val2}%")
+            st.progress(values2[i])
+        
+        st.write("---")
 
 # Funzione per comparare prodotti
 def compare_products(data, product1, product2):
@@ -224,42 +198,23 @@ def compare_products(data, product1, product2):
         df2['green_activities']/100
     ]
     
-    # Creare il grafico utilizzando la nuova funzione
-    comparison_html = create_comparison_chart(product1, product2, values1, values2, categories)
-    st.markdown(comparison_html, unsafe_allow_html=True)
+    # Usiamo la funzione di confronto semplificata che usa componenti nativi Streamlit
+    create_comparison_chart(product1, product2, values1, values2, categories)
 
-# Funzione per creare un grafico a torta HTML
+# Funzione per creare un grafico a torta semplificato
 def create_pie_chart(green_percentage):
-    green = green_percentage
-    non_green = 100 - green_percentage
+    # Utilizziamo componenti nativi di Streamlit
+    st.write(f"**Attività Green: {green_percentage}%**")
     
-    # Calcola gli angoli per le due sezioni del grafico
-    green_angle = green * 3.6  # 3.6 gradi per ogni percentuale (360/100)
+    data = {
+        'Categoria': ['Green', 'Non-Green'],
+        'Percentuale': [green_percentage, 100 - green_percentage]
+    }
     
-    html = f"""
-    <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
-        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(
-            #2ECC71 0deg {green_angle}deg, 
-            #E74C3C {green_angle}deg 360deg
-        );"></div>
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-            <div style="font-weight: bold;">{green}%</div>
-            <div style="font-size: 0.8rem;">Green</div>
-        </div>
-    </div>
-    <div style="text-align: center; margin-top: 10px;">
-        <div style="display: inline-block; margin-right: 15px;">
-            <span style="display: inline-block; width: 12px; height: 12px; background-color: #2ECC71; margin-right: 5px;"></span>
-            <span>Green</span>
-        </div>
-        <div style="display: inline-block;">
-            <span style="display: inline-block; width: 12px; height: 12px; background-color: #E74C3C; margin-right: 5px;"></span>
-            <span>Non-Green</span>
-        </div>
-    </div>
-    """
+    df = pd.DataFrame(data)
     
-    return html
+    # Usa st.progress invece di un grafico a torta
+    st.progress(green_percentage/100)
 
 # Funzione principale per l'app
 def main():
@@ -447,9 +402,8 @@ def main():
                         """, unsafe_allow_html=True)
                 
                 with col2:
-                    # Mini grafico a torta per % attività green usando HTML/CSS
-                    pie_html = create_pie_chart(row['green_activities'])
-                    st.markdown(pie_html, unsafe_allow_html=True)
+                    # Mini grafico a torta per % attività green usando componenti Streamlit nativi
+                    create_pie_chart(row['green_activities'])
         
         # Visualizzazione tabellare
         st.subheader("Vista tabellare")
