@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-import matplotlib.pyplot as plt
-import seaborn as sns
-from PIL import Image
 
 # Configurazione pagina
 st.set_page_config(
@@ -102,6 +99,54 @@ def display_esg_score(score):
     </div>
     """, unsafe_allow_html=True)
 
+# Funzione per creare un grafico radar con HTML/CSS invece di matplotlib
+def create_radar_chart(product1, product2, values1, values2, categories):
+    # Creiamo un grafico personalizzato usando HTML/CSS
+    html = f"""
+    <div style="text-align: center; margin: 20px 0;">
+        <div style="display: inline-block; margin-right: 20px;">
+            <span style="display: inline-block; width: 15px; height: 15px; background-color: green; margin-right: 5px;"></span>
+            <span>{product1}</span>
+        </div>
+        <div style="display: inline-block;">
+            <span style="display: inline-block; width: 15px; height: 15px; background-color: blue; margin-right: 5px;"></span>
+            <span>{product2}</span>
+        </div>
+    </div>
+    <table style="width: 100%; text-align: center; border-collapse: collapse; margin-top: 10px;">
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd;">Categoria</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">{product1}</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">{product2}</th>
+        </tr>
+    """
+    
+    for i, category in enumerate(categories):
+        val1 = int(values1[i] * 100)
+        val2 = int(values2[i] * 100)
+        
+        html += f"""
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">{category}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">
+                <div style="background-color: #f0f0f0; border-radius: 5px; height: 20px; width: 100%;">
+                    <div style="background-color: green; width: {val1}%; height: 100%; border-radius: 5px;"></div>
+                </div>
+                {val1}%
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd;">
+                <div style="background-color: #f0f0f0; border-radius: 5px; height: 20px; width: 100%;">
+                    <div style="background-color: blue; width: {val2}%; height: 100%; border-radius: 5px;"></div>
+                </div>
+                {val2}%
+            </td>
+        </tr>
+        """
+    
+    html += "</table>"
+    
+    return html
+
 # Funzione per comparare prodotti
 def compare_products(data, product1, product2):
     df1 = data[data['product'] == product1].iloc[0]
@@ -158,13 +203,13 @@ def compare_products(data, product1, product2):
         </div>
         """, unsafe_allow_html=True)
     
-    # Grafico comparativo su radar chart
+    # Grafico comparativo 
     st.subheader("Grafico comparativo")
     
-    # Creare dati per grafico radar
+    # Creare dati per grafico 
     categories = ['ESG Score', 'Basse Emissioni', 'Attività Green']
     
-    # Normalizzare i valori per il radar chart
+    # Normalizzare i valori per il grafico 
     max_co2 = max(data['co2_emissions'])
     
     values1 = [
@@ -179,40 +224,54 @@ def compare_products(data, product1, product2):
         df2['green_activities']/100
     ]
     
-    # Creare il radar chart
-    fig, ax = plt.subplots(figsize=(6, 4), subplot_kw=dict(polar=True))
+    # Creare il grafico utilizzando HTML/CSS invece di matplotlib
+    radar_html = create_radar_chart(product1, product2, values1, values2, categories)
+    st.markdown(radar_html, unsafe_allow_html=True)
+
+# Funzione per creare un grafico a torta HTML
+def create_pie_chart(green_percentage):
+    green = green_percentage
+    non_green = 100 - green_percentage
     
-    angles = np.linspace(0, 2*np.pi, len(categories), endpoint=False).tolist()
-    angles += angles[:1]  # Chiudere il poligono
+    # Calcola gli angoli per le due sezioni del grafico
+    green_angle = green * 3.6  # 3.6 gradi per ogni percentuale (360/100)
     
-    values1 += values1[:1]
-    values2 += values2[:1]
+    html = f"""
+    <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(
+            #2ECC71 0deg {green_angle}deg, 
+            #E74C3C {green_angle}deg 360deg
+        );"></div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div style="font-weight: bold;">{green}%</div>
+            <div style="font-size: 0.8rem;">Green</div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 10px;">
+        <div style="display: inline-block; margin-right: 15px;">
+            <span style="display: inline-block; width: 12px; height: 12px; background-color: #2ECC71; margin-right: 5px;"></span>
+            <span>Green</span>
+        </div>
+        <div style="display: inline-block;">
+            <span style="display: inline-block; width: 12px; height: 12px; background-color: #E74C3C; margin-right: 5px;"></span>
+            <span>Non-Green</span>
+        </div>
+    </div>
+    """
     
-    ax.plot(angles, values1, 'o-', linewidth=2, label=product1, color='green')
-    ax.fill(angles, values1, alpha=0.25, color='green')
-    
-    ax.plot(angles, values2, 'o-', linewidth=2, label=product2, color='blue')
-    ax.fill(angles, values2, alpha=0.25, color='blue')
-    
-    ax.set_thetagrids(np.degrees(angles[:-1]), categories)
-    ax.set_ylim(0, 1)
-    ax.grid(True)
-    ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
-    
-    st.pyplot(fig)
+    return html
 
 # Funzione principale per l'app
 def main():
     # Applicare stili CSS
     local_css()
     
-    # Sidebar - utilizziamo un'icona di testo invece di un'immagine
+    # Sidebar con header testuale
     st.sidebar.markdown("""
     <div style="background-color: #1E8449; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
         <h2>🌱 GreenInvest+</h2>
     </div>
     """, unsafe_allow_html=True)
-    st.sidebar.title("GreenInvest+")
     
     # Navigazione
     pages = ["Homepage", "Profilazione", "Dashboard Portafoglio ESG", 
@@ -388,17 +447,9 @@ def main():
                         """, unsafe_allow_html=True)
                 
                 with col2:
-                    # Mini grafico a torta per % attività green
-                    fig, ax = plt.subplots(figsize=(3, 3))
-                    sizes = [row['green_activities'], 100 - row['green_activities']]
-                    labels = ['Green', 'Non-Green']
-                    colors = ['#2ECC71', '#E74C3C']
-                    
-                    ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', 
-                           startangle=90, wedgeprops={'width': 0.4})
-                    ax.axis('equal')
-                    
-                    st.pyplot(fig)
+                    # Mini grafico a torta per % attività green usando HTML/CSS
+                    pie_html = create_pie_chart(row['green_activities'])
+                    st.markdown(pie_html, unsafe_allow_html=True)
         
         # Visualizzazione tabellare
         st.subheader("Vista tabellare")
