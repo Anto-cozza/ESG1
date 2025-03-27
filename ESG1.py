@@ -99,51 +99,51 @@ def display_esg_score(score):
     </div>
     """, unsafe_allow_html=True)
 
-# Funzione per creare un grafico radar con HTML/CSS invece di matplotlib
-def create_radar_chart(product1, product2, values1, values2, categories):
-    # Creiamo un grafico personalizzato usando HTML/CSS
+# Funzione per creare un grafico di confronto
+def create_comparison_chart(product1, product2, values1, values2, categories):
+    # Creiamo una tabella di confronto con barre orizzontali
     html = f"""
-    <div style="text-align: center; margin: 20px 0;">
-        <div style="display: inline-block; margin-right: 20px;">
-            <span style="display: inline-block; width: 15px; height: 15px; background-color: green; margin-right: 5px;"></span>
-            <span>{product1}</span>
+    <div style="margin: 20px 0; padding: 15px; border-radius: 10px; background-color: #f8f9fa;">
+        <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+            <div style="margin-right: 20px;">
+                <span style="display: inline-block; width: 15px; height: 15px; background-color: #2E86C1; margin-right: 5px; border-radius: 3px;"></span>
+                <span style="font-weight: bold;">{product1}</span>
+            </div>
+            <div>
+                <span style="display: inline-block; width: 15px; height: 15px; background-color: #27AE60; margin-right: 5px; border-radius: 3px;"></span>
+                <span style="font-weight: bold;">{product2}</span>
+            </div>
         </div>
-        <div style="display: inline-block;">
-            <span style="display: inline-block; width: 15px; height: 15px; background-color: blue; margin-right: 5px;"></span>
-            <span>{product2}</span>
-        </div>
-    </div>
-    <table style="width: 100%; text-align: center; border-collapse: collapse; margin-top: 10px;">
-        <tr>
-            <th style="padding: 8px; border: 1px solid #ddd;">Categoria</th>
-            <th style="padding: 8px; border: 1px solid #ddd;">{product1}</th>
-            <th style="padding: 8px; border: 1px solid #ddd;">{product2}</th>
-        </tr>
     """
     
+    # Aggiungiamo le barre di confronto per ogni categoria
     for i, category in enumerate(categories):
         val1 = int(values1[i] * 100)
         val2 = int(values2[i] * 100)
         
         html += f"""
-        <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;">{category}</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">
-                <div style="background-color: #f0f0f0; border-radius: 5px; height: 20px; width: 100%;">
-                    <div style="background-color: green; width: {val1}%; height: 100%; border-radius: 5px;"></div>
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">{category}</div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div style="width: 100px; text-align: right; padding-right: 10px;">{product1}</div>
+                <div style="flex-grow: 1; background-color: #f0f0f0; border-radius: 5px; height: 20px; position: relative;">
+                    <div style="position: absolute; background-color: #2E86C1; width: {val1}%; height: 100%; border-radius: 5px;"></div>
                 </div>
-                {val1}%
-            </td>
-            <td style="padding: 8px; border: 1px solid #ddd;">
-                <div style="background-color: #f0f0f0; border-radius: 5px; height: 20px; width: 100%;">
-                    <div style="background-color: blue; width: {val2}%; height: 100%; border-radius: 5px;"></div>
+                <div style="width: 50px; text-align: right; padding-left: 10px;">{val1}%</div>
+            </div>
+            
+            <div style="display: flex; align-items: center;">
+                <div style="width: 100px; text-align: right; padding-right: 10px;">{product2}</div>
+                <div style="flex-grow: 1; background-color: #f0f0f0; border-radius: 5px; height: 20px; position: relative;">
+                    <div style="position: absolute; background-color: #27AE60; width: {val2}%; height: 100%; border-radius: 5px;"></div>
                 </div>
-                {val2}%
-            </td>
-        </tr>
+                <div style="width: 50px; text-align: right; padding-left: 10px;">{val2}%</div>
+            </div>
+        </div>
         """
     
-    html += "</table>"
+    html += "</div>"
     
     return html
 
@@ -224,9 +224,9 @@ def compare_products(data, product1, product2):
         df2['green_activities']/100
     ]
     
-    # Creare il grafico utilizzando HTML/CSS invece di matplotlib
-    radar_html = create_radar_chart(product1, product2, values1, values2, categories)
-    st.markdown(radar_html, unsafe_allow_html=True)
+    # Creare il grafico utilizzando la nuova funzione
+    comparison_html = create_comparison_chart(product1, product2, values1, values2, categories)
+    st.markdown(comparison_html, unsafe_allow_html=True)
 
 # Funzione per creare un grafico a torta HTML
 def create_pie_chart(green_percentage):
